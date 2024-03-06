@@ -4,7 +4,8 @@ const Task = require('../models/task');
 /* not needed for task 6:
 const _ = require('lodash'); */
 
-/* not needed for later tasks
+
+/* not needed for task 8
 // data for projects
 const projects = [
   { 
