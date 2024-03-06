@@ -1,6 +1,10 @@
-const { GraphQLObjectType, GraphQLString, GraphQLInt, GraphQLSchema, GraphQLID, GraphQLList } = require('graphql');
-const _ = require('lodash');
+const { GraphQLObjectType, GraphQLString, GraphQLInt, GraphQLSchema, GraphQLID, GraphQLList, GraphQLNonNull } = require("graphql");
+const Project = require('../models/project');
+const Task = require('../models/task');
+/* not needed for task 6:
+const _ = require('lodash'); */
 
+/* not needed for later tasks
 // data for projects
 const projects = [
   { 
@@ -30,8 +34,24 @@ const tasks = [
     description: 'Copy the content of 0-index.html into 1-index.html Create the head and body sections inside the html tag, create the head and body tags (empty) in this order’', 
     projectId: '1' }
 ];
+ */
 
-
+const ProjectType = new GraphQLObjectType({
+  name: 'Project',
+  fields: () => ({
+    id: { type: GraphQLID },
+    title: { type: GraphQLString },
+    weight: { type: GraphQLInt },
+    description: { type: GraphQLString },
+    tasks: {
+      type: new GraphQLList(TaskType), // lists task types
+      resolve(parent, args) { // parent = project
+        return Task.find({ projectId: parent.id }); // updated for task 7
+        /* return tasks.filter(task => task.projectId === parent.id); */
+      }
+    }
+  })
+});
 
 const TaskType = new GraphQLObjectType({
     name: 'Task',
@@ -43,29 +63,12 @@ const TaskType = new GraphQLObjectType({
       project: {
         type: ProjectType, // specifys the type
         resolve(parent, args) { // parent = task
-        return projects.find(project => project.id === parent.projectId);
+          return Project.findById(parent.projectId); // updated for task 7
+        /* return projects.find(project => project.id === parent.projectId); */
         }
       }
     })
   });
-
-
-  const ProjectType = new GraphQLObjectType({
-    name: 'Project',
-    fields: () => ({
-      id: { type: GraphQLID },
-      title: { type: GraphQLString },
-      weight: { type: GraphQLInt },
-      description: { type: GraphQLString },
-      tasks: {
-        type: new GraphQLList(TaskType), // lists task types
-        resolve(parent, args) { // parent = project
-          return tasks.filter(task => task.projectId === parent.id);
-        }
-      }
-    })
-  });
-
 
   const RootQuery = new GraphQLObjectType({
     name: 'RootQueryType',
@@ -74,33 +77,79 @@ const TaskType = new GraphQLObjectType({
         type: TaskType,
         args: { id: { type: GraphQLID } },
         resolve(parent, args) {
-          return _.find(tasks, { id: args.id });
+          return Task.findById(args.id);
+          /* not needed for task 6:
+          return _.find(tasks, { id: args.id }); */
         }
       },
       project: {
         type: ProjectType,
         args: { id: { type: GraphQLID } },
         resolve(parent, args) {
-          return _.find(projects, { id: args.id });
+          return Project.findById(args.id);
+          /* not need for task 6:
+          return _.find(projects, { id: args.id }); */
         }
       },
       tasks: {
         type: new GraphQLList(TaskType),
         resolve(parent, args) {
-          return tasks; // return all tasks
+          return Task.find({});
+          /* not needed for 6:
+          return tasks; */ // return all tasks
         }
       },
       projects: {
         type: new GraphQLList(ProjectType),
         resolve(parent, args) {
-          return projects; // return all projects
+          return Project.find({});
+          /* not needed for 6:
+          return projects; // return all projects */
         }
       }
     })
   });
 
-
-  module.exports = new GraphQLSchema({
-    query: RootQuery
-  });
   
+
+  const Mutation = new GraphQLObjectType({
+    name: 'Mutation',
+    fields: {
+      addProject: {
+        type: ProjectType,
+        args: {
+          title: { type: new GraphQLNonNull(GraphQLString) },
+          weight: { type: new GraphQLNonNull(GraphQLInt) },
+          description: { type: new GraphQLNonNull(GraphQLString) }
+        },
+        resolve(parent, args) {
+          let project = new Project({
+            title: args.title,
+            weight: args.weight,
+            description: args.description
+          });
+          return project.save();
+        }
+      },
+      addTask: {
+        type: TaskType,
+        args: {
+          title: { type: new GraphQLNonNull(GraphQLString) },
+          weight: { type: new GraphQLNonNull(GraphQLInt) },
+          description: { type: new GraphQLNonNull(GraphQLString) },
+          projectId: { type: new GraphQLNonNull(GraphQLID) }
+        },
+        resolve(parent, args) {
+          let task = new Task({
+            title: args.title,
+            weight: args.weight,
+            description: args.description,
+            projectId: args.projectId
+          });
+          return task.save();
+        }
+      }
+    }
+  });
+
+  module.exports = new GraphQLSchema({ query: RootQuery, mutation: Mutation });

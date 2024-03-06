@@ -1,6 +1,13 @@
 const express = require('express');
 const { graphqlHTTP } = require('express-graphql');
 const schema = require('./schema/schema');
+const mongoose = require('mongoose');
+
+mongoose.connect("mongodb+srv://Evebaker:1229@cluster0.thj2qkm.mongodb.net/?retryWrites=true&w=majority", { useNewUrlParser: true, useUnifiedTopology: true });
+
+mongoose.connection.once('open', () => {
+  console.log('Connected to database');
+});
 
 const app = express();
 
