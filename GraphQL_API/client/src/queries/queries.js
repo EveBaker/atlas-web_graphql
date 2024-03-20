@@ -18,4 +18,13 @@ const getProjectsQuery = gql`
 }
 `;
 
-export {getTaskQuery, getProjectsQuery};
+const addTaskMutation = gql`
+mutation($title: String!, $weight: Int!, $description: String!) {
+    addTask(title: $title, weight: $weight, description: $description) {
+        title
+        id
+    }
+}
+`;
+
+export {getTaskQuery, getProjectsQuery, addTaskMutation};
