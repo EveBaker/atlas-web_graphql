@@ -41,8 +41,10 @@ function AddTask(props) {
   };
 
   return (
-    <form className="task" id="add-task">
-      {/* Your form fields */}
+   <form
+      className="task"
+      id="add-task"
+      onSubmit={submitForm} >
       <div className="field">
         <label>Project:</label>
         <select
