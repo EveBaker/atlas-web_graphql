@@ -2,6 +2,7 @@ const express = require('express');
 const { graphqlHTTP } = require('express-graphql');
 const schema = require('./schema/schema');
 const mongoose = require('mongoose');
+const cors = require('cors');
 
 mongoose.connect("mongodb+srv://Evebaker:1229@cluster0.thj2qkm.mongodb.net/?retryWrites=true&w=majority", { useNewUrlParser: true, useUnifiedTopology: true });
 
@@ -11,6 +12,7 @@ mongoose.connection.once('open', () => {
 
 const app = express();
 
+app.use(cors());
 
 app.use('/graphql', graphqlHTTP({
   schema, 
